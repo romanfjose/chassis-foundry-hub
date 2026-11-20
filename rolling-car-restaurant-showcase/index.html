@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BRASA · Fuego &amp; Vino — Restaurant Editorial Showcase Chassis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #120f0d; --surface: #1b1613; --ink: #f4ece1; --muted: #a99b8c;
+      --accent: #d4944c; --line: rgba(244, 236, 225, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; line-height: 1.6; }
+    .container { width: min(1120px, 92vw); margin: 0 auto; }
+    a { color: inherit; text-decoration: none; }
+
+    nav { position: sticky; top: 0; z-index: 40; background: rgba(18,15,13,0.84); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+    .nav-inner { display: flex; justify-content: space-between; align-items: center; height: 70px; }
+    .brand { font-family: 'Cormorant Garamond', serif; font-size: 26px; letter-spacing: 0.14em; font-weight: 600; }
+    .nav-links { display: flex; gap: 26px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .btn { background: var(--accent); color: #120f0d; border: none; padding: 11px 22px; border-radius: 4px; font-weight: 700; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
+    .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+
+    .hero { position: relative; min-height: 84vh; display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(270deg, rgba(18,15,13,0.92) 0%, rgba(18,15,13,0.58) 52%, rgba(18,15,13,0.22) 100%),
+                  url('./hero_restaurant_plating.webp') center/cover no-repeat;
+    }
+    .hero-inner { position: relative; z-index: 2; margin-left: auto; max-width: 540px; padding: 80px 0; }
+    .kicker { color: var(--accent); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; margin-bottom: 12px; }
+    h1 { font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: clamp(48px, 6vw, 76px); line-height: 0.98; margin: 0 0 18px; }
+    h1 em { font-style: italic; color: #f0cba0; }
+    .tonight-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; align-items: center; font-size: 12px; color: var(--muted); }
+    .slot { border: 1px solid rgba(212,148,76,0.45); background: rgba(212,148,76,0.1); color: #f6d7b0; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; }
+    .slot:hover { background: var(--accent); color: #120f0d; }
+
+    /* Info Strip */
+    .info-strip { border-bottom: 1px solid var(--line); background: var(--surface); }
+    .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 22px 0; font-size: 13px; }
+    .info-grid strong { display: block; color: var(--accent); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+
+    /* Menu */
+    section { padding: 82px 0; }
+    h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(36px, 4.5vw, 54px); font-weight: 500; margin: 0 0 10px; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0 34px; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+    .tab { background: transparent; color: var(--muted); border: 1px solid transparent; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+    .tab.active { color: var(--ink); border-color: var(--accent); background: rgba(212,148,76,0.12); }
+    .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px 44px; }
+    .dish { border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+    .dish-top { display: flex; justify-content: space-between; gap: 14px; align-items: baseline; }
+    .dish-name { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; }
+    .dish-price { color: var(--accent); font-weight: 700; font-size: 15px; }
+    .dish-desc { color: var(--muted); font-size: 13px; margin: 4px 0 8px; }
+    .tag { display: inline-block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--line); padding: 2px 7px; border-radius: 3px; color: #d8c8b6; margin-right: 6px; }
+
+    /* Modal */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.72); z-index: 60; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-bg.open { display: flex; }
+    .modal { width: min(460px, 100%); background: var(--surface); border: 1px solid rgba(212,148,76,0.35); border-radius: 8px; padding: 28px; display: flex; flex-direction: column; gap: 14px; }
+    .modal input, .modal select { width: 100%; background: var(--bg); color: var(--ink); border: 1px solid var(--line); padding: 11px; border-radius: 4px; font-size: 14px; }
+
+    @media (max-width: 820px) {
+      .nav-links { display: none; }
+      .info-grid, .menu-grid { grid-template-columns: 1fr; }
+      .hero-bg { background: linear-gradient(180deg, rgba(18,15,13,0.4) 0%, rgba(18,15,13,0.95) 70%), url('./hero_restaurant_plating.webp') center/cover no-repeat; }
+      .hero-inner { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="container nav-inner">
+      <div class="brand">BRASA</div>
+      <div class="nav-links">
+        <a href="#menu">Menu</a>
+        <a href="#visit">Hours &amp; Location</a>
+      </div>
+      <button class="btn" id="openResTop">Reserve a Table</button>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-bg"></div>
+    <div class="container">
+      <div class="hero-inner">
+        <div class="kicker">Open-Fire Kitchen · Mendoza</div>
+        <h1>Wood, ember &amp; <em>high-altitude</em> wine.</h1>
+        <p style="color:#d6c9ba;margin:0 0 24px;">Seasonal Argentine cuts roasted over jarilla wood, paired with small-lot Uco Valley Malbecs in a 38-seat dining room.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn" id="openResHero">Book a Table</button>
+          <a href="#menu" class="btn btn-outline">Explore Tonight's Menu</a>
+        </div>
+        <div class="tonight-bar">
+          <span>Tonight's open tables:</span>
+          <button class="slot" data-time="19:30">19:30</button>
+          <button class="slot" data-time="20:45">20:45</button>
+          <button class="slot" data-time="21:30">21:30</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="info-strip" id="visit">
+    <div class="container info-grid">
+      <div><strong>Hours</strong>Tue – Sun · 19:00 to 00:30 (Closed Monday)</div>
+      <div><strong>Location</strong>Arístides Villanueva 418, Mendoza · Valet Parking</div>
+      <div><strong>Direct Concierge</strong>+54 261 555-0194 · Instant WhatsApp Confirm</div>
+    </div>
+  </div>
+
+  <section id="menu">
+    <div class="container">
+      <div class="kicker">Autumn Harvest Carta</div>
+      <h2>Cooked exclusively over live fire.</h2>
+      <div class="tabs" id="menuTabs">
+        <button class="tab active" data-cat="mains">Wood-Fired Mains</button>
+        <button class="tab" data-cat="small">Small Plates</button>
+        <button class="tab" data-cat="wine">Cellar &amp; Cocktails</button>
+        <button class="tab" data-cat="dessert">Desserts</button>
+      </div>
+      <div class="menu-grid" id="menuGrid"></div>
+    </div>
+  </section>
+
+  <div class="modal-bg" id="resModal">
+    <div class="modal">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="margin:0;font-family:'Cormorant Garamond',serif;font-size:28px;">Reserve Your Table</h3>
+        <button class="slot" id="closeRes">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <select id="partySize"><option>2 Guests</option><option>4 Guests</option><option>6 Guests</option><option>8 Guests</option></select>
+        <select id="resTime"><option>19:30</option><option>20:15</option><option>20:45</option><option>21:30</option></select>
+      </div>
+      <input type="text" id="guestName" placeholder="Your name" />
+      <input type="tel" id="guestPhone" placeholder="WhatsApp / Phone for confirmation" />
+      <button class="btn" id="confirmRes" style="width:100%;padding:13px;">Hold Table Preview</button>
+      <div id="resMsg" style="font-size:13px;color:#4ade80;"></div>
+    </div>
+  </div>
+
+  <script>
+    const MENU = {
+      mains: [
+        { name: '45-Day Dry-Aged Ojo de Bife', price: '$34', desc: 'Charred over jarilla embers, smoked bone marrow butter, charred heirloom carrots.', tags: ['Chef Signature', 'GF'] },
+        { name: 'Wood-Roasted Patagonian Trout', price: '$28', desc: 'Crispy skin, brown butter caper emulsion, fire-blistered fennel.', tags: ['GF'] },
+        { name: 'Slow-Braised Lamb Shoulder', price: '$31', desc: '12-hour Malbec reduction, roasted garlic puree, crispy rosemary.', tags: ['GF'] },
+        { name: 'Ember-Charred Cauliflower Steak', price: '$22', desc: 'Tahini-almond crema, pickled golden raisins, toasted pistachios.', tags: ['V', 'GF'] }
+      ],
+      small: [
+        { name: 'Provoleta a la Brasa', price: '$14', desc: 'Aged provolone, blistered cherry tomatoes, wild oregano honey.', tags: ['V', 'GF'] },
+        { name: 'Hand-Cut Knife Empanadas (2)', price: '$12', desc: 'Wood-oven baked beef, smoked paprika, green onion, house llajua.', tags: ['Chef Signature'] },
+        { name: 'Charred Octopus Carpaccio', price: '$19', desc: 'Mendoza olive oil, preserved lemon, smoked sea salt.', tags: ['GF'] },
+        { name: 'Sourdough & Cultured Butter', price: '$9', desc: '48-hour fermented hearth loaf, flaky black volcanic salt.', tags: ['V'] }
+      ],
+      wine: [
+        { name: 'Gualtallary Parcela 4 Malbec', price: '$16 / $64', desc: '1,450m elevation, chalky minerality, wild violet & blackberry.', tags: ['House Pour'] },
+        { name: 'Smoked Negroni de la Casa', price: '$14', desc: 'Aged gin, bitter aperitivo, sweet vermouth smoked with oak stave.', tags: ['Signature'] },
+        { name: 'Uco Valley Cabernet Franc', price: '$15 / $58', desc: 'Silky tannins, roasted red pepper, dark cocoa finish.', tags: ['Organic'] },
+        { name: 'Torrontés Sparkling Brut', price: '$13 / $48', desc: 'Crisp white peach, citrus blossom, bone-dry aperitif.', tags: ['Salta'] }
+      ],
+      dessert: [
+        { name: 'Burnt Dulce de Leche Flan', price: '$11', desc: 'Whipped mascarpone, sea-salt caramel crust.', tags: ['Chef Signature', 'GF'] },
+        { name: 'Wood-Roasted Peaches', price: '$10', desc: 'Torrontés syrup, toasted almond crumble, vanilla bean gelato.', tags: ['V'] }
+      ]
+    };
+
+    function renderMenu(cat) {
+      const grid = document.getElementById('menuGrid');
+      grid.innerHTML = (MENU[cat] || []).map(d => `
+        <div class="dish">
+          <div class="dish-top"><span class="dish-name">${d.name}</span><span class="dish-price">${d.price}</span></div>
+          <div class="dish-desc">${d.desc}</div>
+          <div>${d.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        </div>
+      `).join('');
+    }
+    renderMenu('mains');
+
+    document.querySelectorAll('#menuTabs .tab').forEach(tab => tab.addEventListener('click', () => {
+      document.querySelectorAll('#menuTabs .tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      renderMenu(tab.dataset.cat);
+    }));
+
+    const modal = document.getElementById('resModal');
+    function openModal(time) {
+      if (time) document.getElementById('resTime').value = time;
+      modal.classList.add('open');
+    }
+    document.getElementById('openResTop').onclick = () => openModal();
+    document.getElementById('openResHero').onclick = () => openModal();
+    document.querySelectorAll('.slot[data-time]').forEach(s => s.onclick = () => openModal(s.dataset.time));
+    document.getElementById('closeRes').onclick = () => modal.classList.remove('open');
+    document.getElementById('confirmRes').onclick = () => {
+      const party = document.getElementById('partySize').value;
+      const time = document.getElementById('resTime').value;
+      document.getElementById('resMsg').textContent = `Table held preview: ${party} at ${time}. Connect WhatsApp / OpenTable webhook here.`;
+    };
+
+    window.__bootErrors = [];
+    window.addEventListener('error', (e) => {
+      window.__bootErrors.push(e.message || 'runtime_error');
+      document.documentElement.setAttribute('data-boot-errors', window.__bootErrors.join('||'));
+    });
+    window.addEventListener('load', () => {
+      document.documentElement.setAttribute('data-boot-errors', window.__bootErrors.join('||'));
+      document.documentElement.setAttribute('data-boot-status', 'READY');
+    });
+  </script>
+</body>
+</html>

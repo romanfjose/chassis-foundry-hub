@@ -5,20 +5,64 @@
   <title>ChassisFoundry — Rolling-Car Test-Drive Hub</title>
   <style>
     body { margin: 0; background: #14171c; color: #ece7dc; font-family: system-ui, sans-serif; padding: 32px; }
-    h1 { margin: 0 0 8px; font-size: 24px; color: #f59e0b; }
-    p.sub { margin: 0 0 28px; color: #94a3b8; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 22px; }
+    h1 { margin: 0 0 8px; font-size: 26px; color: #f59e0b; }
+    p.sub { margin: 0 0 12px; color: #94a3b8; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 22px; }
     .card { background: #1d222b; border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
     .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border-bottom: 1px solid rgba(148,163,184,0.15); }
     .body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
-    .title { font-size: 17px; font-weight: 700; }
+    .title { font-size: 16px; font-weight: 700; }
     .desc { font-size: 13px; color: #cbd5e1; line-height: 1.45; flex: 1; }
-    a.btn { display: inline-block; text-align: center; background: #f59e0b; color: #14171c; font-weight: 800; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; }
+    a.btn { display: inline-block; text-align: center; background: #f59e0b; color: #14171c; font-weight: 800; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-size: 12px; }
+    a.btn-sec { background: #262e3a; color: #ece7dc; border: 1px solid rgba(148,163,184,0.25); }
   </style>
 </head>
 <body>
-  <h1>ChassisFoundry — Playable Rolling-Car Test-Drive Hub</h1>
-  <p class="sub">All 3 target arenas verified 60fps in headless Chrome with 0 runtime errors. Play each and tell Jarvis which to lock onto the Rack.</p>
+  <h1>ChassisFoundry — Playable &amp; Commercial Rolling-Car Hub</h1>
+  <p class="sub">All 6 flagship arenas verified live in Chrome with 0 runtime errors (Commercial pages audited at both 1440px Desktop &amp; 390px Mobile).</p>
+  
+  <h2 style="margin:34px 0 14px;font-size:15px;letter-spacing:0.12em;text-transform:uppercase;color:#94a3b8;">Commercial Web & Conversion Chassis (NEW)</h2>
+  <div class="grid">
+    
+      <div class="card">
+        <img src="./rolling-car-sales-landing/snapshot.png" alt="Product / Offer Sales Page (Apple + Stripe DNA)" />
+        <div class="body">
+          <div class="title">Product / Offer Sales Page (Apple + Stripe DNA)</div>
+          <div class="desc">Bespoke studio hero, interactive finish/tier configurator, live savings calc, bento proof, FAQ & order drawer</div>
+          <div style="display:flex;gap:8px;">
+            <a class="btn" style="flex:1;" href="./rolling-car-sales-landing/index.html" target="_blank">OPEN LIVE →</a>
+            <a class="btn btn-sec" href="./rolling-car-sales-landing/responsive_audit.png" target="_blank">1440+390 QA</a>
+          </div>
+        </div>
+      </div>
+    
+      <div class="card">
+        <img src="./rolling-car-restaurant-showcase/snapshot.png" alt="Restaurant & Hospitality Showcase (Noma + Carbone DNA)" />
+        <div class="body">
+          <div class="title">Restaurant & Hospitality Showcase (Noma + Carbone DNA)</div>
+          <div class="desc">Full-bleed candlelight hero, tonight open table slots, tabbed HTML menu with dietary tags & reservation modal</div>
+          <div style="display:flex;gap:8px;">
+            <a class="btn" style="flex:1;" href="./rolling-car-restaurant-showcase/index.html" target="_blank">OPEN LIVE →</a>
+            <a class="btn btn-sec" href="./rolling-car-restaurant-showcase/responsive_audit.png" target="_blank">1440+390 QA</a>
+          </div>
+        </div>
+      </div>
+    
+      <div class="card">
+        <img src="./rolling-car-service-b2b/snapshot.png" alt="Service / Studio / Local Business Showcase (Linear DNA)" />
+        <div class="body">
+          <div class="title">Service / Studio / Local Business Showcase (Linear DNA)</div>
+          <div class="desc">Interactive ROI lift calculator, before/after industry case switcher, 3-step sprint process & brief modal</div>
+          <div style="display:flex;gap:8px;">
+            <a class="btn" style="flex:1;" href="./rolling-car-service-b2b/index.html" target="_blank">OPEN LIVE →</a>
+            <a class="btn btn-sec" href="./rolling-car-service-b2b/responsive_audit.png" target="_blank">1440+390 QA</a>
+          </div>
+        </div>
+      </div>
+    
+  </div>
+  
+  <h2 style="margin:34px 0 14px;font-size:15px;letter-spacing:0.12em;text-transform:uppercase;color:#94a3b8;">Playable Game Chassis (Locked on Rack)</h2>
   <div class="grid">
     
       <div class="card">
@@ -26,7 +70,10 @@
         <div class="body">
           <div class="title">3D Tactical FPS (CS2 / Valorant)</div>
           <div class="desc">Three.js + PointerLock counter-strafing + head/body raycast hitboxes + recoil/spread + dynamic crosshair</div>
-          <a class="btn" href="./rolling-car-3d-fps-tactical/index.html" target="_blank">TEST-DRIVE IN BROWSER →</a>
+          <div style="display:flex;gap:8px;">
+            <a class="btn" style="flex:1;" href="./rolling-car-3d-fps-tactical/index.html" target="_blank">OPEN LIVE →</a>
+            
+          </div>
         </div>
       </div>
     
@@ -35,7 +82,10 @@
         <div class="body">
           <div class="title">2D Juicy Action Roguelite (Nuclear Throne)</div>
           <div class="desc">60fps Canvas + cursor camera-lead + 45ms hitstop + directional shake + shell casings + dash i-frames + rifle/shotgun</div>
-          <a class="btn" href="./rolling-car-2d-nuclear-throne/index.html" target="_blank">TEST-DRIVE IN BROWSER →</a>
+          <div style="display:flex;gap:8px;">
+            <a class="btn" style="flex:1;" href="./rolling-car-2d-nuclear-throne/index.html" target="_blank">OPEN LIVE →</a>
+            
+          </div>
         </div>
       </div>
     
@@ -44,7 +94,10 @@
         <div class="body">
           <div class="title">MOBA Lane Arena (Dota / LoL)</div>
           <div class="desc">Right-click pathing + Attack-Move range ring + Q/W/E/R skillshot & AoE telegraphs + minion waves + tower aggro</div>
-          <a class="btn" href="./rolling-car-moba-lane-arena/index.html" target="_blank">TEST-DRIVE IN BROWSER →</a>
+          <div style="display:flex;gap:8px;">
+            <a class="btn" style="flex:1;" href="./rolling-car-moba-lane-arena/index.html" target="_blank">OPEN LIVE →</a>
+            
+          </div>
         </div>
       </div>
     
