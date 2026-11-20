@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ChassisFoundry — Rolling-Car Test-Drive Hub</title>
+  <style>
+    body { margin: 0; background: #14171c; color: #ece7dc; font-family: system-ui, sans-serif; padding: 32px; }
+    h1 { margin: 0 0 8px; font-size: 24px; color: #f59e0b; }
+    p.sub { margin: 0 0 28px; color: #94a3b8; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 22px; }
+    .card { background: #1d222b; border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+    .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; border-bottom: 1px solid rgba(148,163,184,0.15); }
+    .body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .title { font-size: 17px; font-weight: 700; }
+    .desc { font-size: 13px; color: #cbd5e1; line-height: 1.45; flex: 1; }
+    a.btn { display: inline-block; text-align: center; background: #f59e0b; color: #14171c; font-weight: 800; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>ChassisFoundry — Playable Rolling-Car Test-Drive Hub</h1>
+  <p class="sub">All 3 target arenas verified 60fps in headless Chrome with 0 runtime errors. Play each and tell Jarvis which to lock onto the Rack.</p>
+  <div class="grid">
+    
+      <div class="card">
+        <img src="./rolling-car-3d-fps-tactical/snapshot.png" alt="3D Tactical FPS (CS2 / Valorant)" />
+        <div class="body">
+          <div class="title">3D Tactical FPS (CS2 / Valorant)</div>
+          <div class="desc">Three.js + PointerLock counter-strafing + head/body raycast hitboxes + recoil/spread + dynamic crosshair</div>
+          <a class="btn" href="./rolling-car-3d-fps-tactical/index.html" target="_blank">TEST-DRIVE IN BROWSER →</a>
+        </div>
+      </div>
+    
+      <div class="card">
+        <img src="./rolling-car-2d-nuclear-throne/snapshot.png" alt="2D Juicy Action Roguelite (Nuclear Throne)" />
+        <div class="body">
+          <div class="title">2D Juicy Action Roguelite (Nuclear Throne)</div>
+          <div class="desc">60fps Canvas + cursor camera-lead + 45ms hitstop + directional shake + shell casings + dash i-frames + rifle/shotgun</div>
+          <a class="btn" href="./rolling-car-2d-nuclear-throne/index.html" target="_blank">TEST-DRIVE IN BROWSER →</a>
+        </div>
+      </div>
+    
+      <div class="card">
+        <img src="./rolling-car-moba-lane-arena/snapshot.png" alt="MOBA Lane Arena (Dota / LoL)" />
+        <div class="body">
+          <div class="title">MOBA Lane Arena (Dota / LoL)</div>
+          <div class="desc">Right-click pathing + Attack-Move range ring + Q/W/E/R skillshot & AoE telegraphs + minion waves + tower aggro</div>
+          <a class="btn" href="./rolling-car-moba-lane-arena/index.html" target="_blank">TEST-DRIVE IN BROWSER →</a>
+        </div>
+      </div>
+    
+  </div>
+</body>
+</html>

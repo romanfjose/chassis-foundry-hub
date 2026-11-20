@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MOBA Lane Arena — Dota / LoL Rolling-Car Chassis</title>
+  <style>
+    * { box-sizing: border-box; user-select: none; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #10171b; color: #ece7dc; font-family: 'Inter', system-ui, sans-serif; }
+    canvas { display: block; width: 100%; height: 100%; }
+    .hud { position: fixed; inset: 0; pointer-events: none; }
+    .topbar { position: absolute; top: 12px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .pill { background: rgba(14, 20, 26, 0.88); border: 1px solid rgba(203, 173, 109, 0.35); border-radius: 6px; padding: 6px 14px; font-size: 13px; display: flex; gap: 16px; }
+    .gold { color: #f59e0b; font-weight: 700; }
+    .cyan { color: #38bdf8; font-weight: 700; }
+    .dock {
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(14, 20, 26, 0.92); border: 1px solid rgba(203, 173, 109, 0.42);
+      border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; min-width: 440px;
+    }
+    .abilities { display: flex; gap: 10px; justify-content: center; }
+    .ab {
+      position: relative; width: 64px; height: 64px; border-radius: 8px;
+      background: #1b2631; border: 2px solid #475569;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .ab.ready { border-color: #cbad6d; }
+    .ab-key { position: absolute; top: 4px; left: 6px; font-size: 11px; font-weight: 800; color: #f59e0b; }
+    .ab-name { font-size: 11px; font-weight: 700; margin-top: 8px; }
+    .ab-cost { font-size: 10px; color: #38bdf8; }
+    .ab-cd {
+      position: absolute; inset: 0; background: rgba(8, 12, 16, 0.78);
+      display: none; align-items: center; justify-content: center; font-size: 18px; font-weight: 800;
+    }
+    .bars { display: flex; flex-direction: column; gap: 5px; }
+    .track { height: 12px; background: #1e293b; border-radius: 4px; overflow: hidden; position: relative; }
+    .fill-hp { height: 100%; background: linear-gradient(90deg, #16a34a, #22c55e); width: 100%; }
+    .fill-mp { height: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); width: 100%; }
+    .bar-lbl { position: absolute; inset: 0; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; text-shadow: 0 1px 2px #000; }
+    .help { position: absolute; bottom: 16px; left: 16px; background: rgba(14, 20, 26, 0.85); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 6px; padding: 8px 12px; font-size: 11px; color: #cbd5e1; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div class="hud">
+    <div class="topbar">
+      <div class="pill">
+        <strong class="gold">MOBA LANE CHASSIS</strong>
+        <span>RIGHT-CLICK MOVE · A ATTACK-MOVE · Q/W/E/R SPELLS · TOWER AGGRO</span>
+      </div>
+      <div class="pill">
+        <span>CS <strong id="cs">0</strong></span>
+        <span>GOLD <strong class="gold" id="gold">500g</strong></span>
+        <span>TOWER HP <strong class="cyan" id="towerHp">1500</strong></span>
+      </div>
+    </div>
+
+    <div class="help">
+      <div><strong>RMB:</strong> Move / Attack target</div>
+      <div><strong>A + LMB:</strong> Attack-Move (shows range)</div>
+      <div><strong>Q / W / E / R:</strong> Cast at cursor</div>
+      <div><strong>SPACE:</strong> Snap camera to Hero</div>
+    </div>
+
+    <div class="dock">
+      <div class="abilities">
+        <div class="ab ready" id="abQ"><span class="ab-key">Q</span><span class="ab-name">LANCE</span><span class="ab-cost">45 MP</span><div class="ab-cd" id="cdQ"></div></div>
+        <div class="ab ready" id="abW"><span class="ab-key">W</span><span class="ab-name">FROST</span><span class="ab-cost">65 MP</span><div class="ab-cd" id="cdW"></div></div>
+        <div class="ab ready" id="abE"><span class="ab-key">E</span><span class="ab-name">BLINK</span><span class="ab-cost">50 MP</span><div class="ab-cd" id="cdE"></div></div>
+        <div class="ab ready" id="abR"><span class="ab-key">R</span><span class="ab-name">ORBITAL</span><span class="ab-cost">100 MP</span><div class="ab-cd" id="cdR"></div></div>
+      </div>
+      <div class="bars">
+        <div class="track"><div class="fill-hp" id="hpFill"></div><div class="bar-lbl" id="hpLbl">680 / 680</div></div>
+        <div class="track"><div class="fill-mp" id="mpFill"></div><div class="bar-lbl" id="mpLbl">360 / 360</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('c');
+    const ctx = canvas.getContext('2d');
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize); resize();
+
+    const WORLD = { w: 2200, h: 1400 };
+    const hero = {
+      x: 520, y: 880, tx: 520, ty: 880, r: 19, speed: 270,
+      hp: 680, maxHp: 680, mp: 360, maxMp: 360,
+      aaRange: 235, aaCd: 0, target: null, cs: 0, gold: 500, facing: -0.6
+    };
+    const cds = { q: 0, w: 0, e: 0, r: 0 };
+    const maxCds = { q: 3.5, w: 6.5, e: 7.5, r: 18 };
+    const costs = { q: 45, w: 65, e: 50, r: 100 };
+
+    const enemyTower = { x: 1420, y: 460, r: 34, hp: 1500, maxHp: 1500, range: 290, cd: 0, team: 'red', alive: true };
+    const allyTower = { x: 380, y: 980, r: 34, hp: 1500, maxHp: 1500, range: 290, cd: 0, team: 'blue', alive: true };
+
+    const minions = [];
+    const projectiles = [];
+    const aoes = [];
+    const clicks = [];
+    const popups = [];
+
+    const cam = { x: hero.x + 180, y: hero.y - 120 };
+    const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+    let attackMoveMode = false;
+
+    function spawnWave() {
+      for (let i = 0; i < 4; i++) {
+        minions.push({ x: 430 + i * 24, y: 940 - i * 12, r: 12, hp: 140, maxHp: 140, team: 'blue', cd: 0, slow: 0 });
+        minions.push({ x: 1360 - i * 24, y: 495 + i * 12, r: 12, hp: 140, maxHp: 140, team: 'red', cd: 0, slow: 0 });
+      }
+    }
+    spawnWave();
+    let waveTimer = 14;
+
+    function screenToWorld(sx, sy) {
+      return { x: cam.x - canvas.width / 2 + sx, y: cam.y - canvas.height / 2 + sy };
+    }
+
+    function addPopup(x, y, text, color) {
+      popups.push({ x, y, text, color, life: 0.95 });
+    }
+
+    window.addEventListener('contextmenu', (e) => e.preventDefault());
+    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+    window.addEventListener('mousedown', (e) => {
+      const w = screenToWorld(e.clientX, e.clientY);
+      if (e.button === 2) {
+        attackMoveMode = false;
+        const hitEnemy = minions.find(m => m.team === 'red' && Math.hypot(m.x - w.x, m.y - w.y) <= m.r + 14)
+          || (enemyTower.alive && Math.hypot(enemyTower.x - w.x, enemyTower.y - w.y) <= enemyTower.r + 14 ? enemyTower : null);
+        if (hitEnemy) {
+          hero.target = hitEnemy;
+          clicks.push({ x: hitEnemy.x, y: hitEnemy.y, color: '#ef4444', life: 0.4 });
+        } else {
+          hero.target = null;
+          hero.tx = w.x; hero.ty = w.y;
+          clicks.push({ x: w.x, y: w.y, color: '#22c55e', life: 0.4 });
+        }
+      } else if (e.button === 0 && attackMoveMode) {
+        attackMoveMode = false;
+        const nearest = minions
+          .filter(m => m.team === 'red')
+          .sort((a, b) => Math.hypot(a.x - w.x, a.y - w.y) - Math.hypot(b.x - w.x, b.y - w.y))[0];
+        if (nearest && Math.hypot(nearest.x - w.x, nearest.y - w.y) < 180) {
+          hero.target = nearest;
+        } else {
+          hero.target = null; hero.tx = w.x; hero.ty = w.y;
+        }
+        clicks.push({ x: w.x, y: w.y, color: '#f59e0b', life: 0.4 });
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      const w = screenToWorld(mouse.x, mouse.y);
+      if (e.code === 'KeyA') attackMoveMode = !attackMoveMode;
+      if (e.code === 'Space') { cam.x = hero.x; cam.y = hero.y; }
+
+      if (e.code === 'KeyQ' && cds.q <= 0 && hero.mp >= costs.q) {
+        cds.q = maxCds.q; hero.mp -= costs.q;
+        const a = Math.atan2(w.y - hero.y, w.x - hero.x);
+        hero.facing = a;
+        projectiles.push({ x: hero.x, y: hero.y, vx: Math.cos(a) * 860, vy: Math.sin(a) * 860, r: 10, dmg: 95, team: 'blue', pierce: true, color: '#38bdf8', life: 0.65, hitSet: new Set() });
+      }
+      if (e.code === 'KeyW' && cds.w <= 0 && hero.mp >= costs.w) {
+        cds.w = maxCds.w; hero.mp -= costs.w;
+        aoes.push({ x: w.x, y: w.y, r: 105, delay: 0.38, maxDelay: 0.38, dmg: 85, slow: 1.8, color: '#38bdf8', fired: false, fade: 0.35 });
+      }
+      if (e.code === 'KeyE' && cds.e <= 0 && hero.mp >= costs.e) {
+        cds.e = maxCds.e; hero.mp -= costs.e;
+        const a = Math.atan2(w.y - hero.y, w.x - hero.x);
+        const dist = Math.min(230, Math.hypot(w.x - hero.x, w.y - hero.y));
+        hero.x += Math.cos(a) * dist; hero.y += Math.sin(a) * dist;
+        hero.tx = hero.x; hero.ty = hero.y;
+        clicks.push({ x: hero.x, y: hero.y, color: '#a855f7', life: 0.45 });
+      }
+      if (e.code === 'KeyR' && cds.r <= 0 && hero.mp >= costs.r) {
+        cds.r = maxCds.r; hero.mp -= costs.r;
+        aoes.push({ x: w.x, y: w.y, r: 165, delay: 0.65, maxDelay: 0.65, dmg: 220, slow: 1.0, color: '#f59e0b', fired: false, fade: 0.5 });
+      }
+    });
+
+    function damageUnit(u, dmg, fromHero = false) {
+      u.hp -= dmg;
+      if (u.hp <= 0) {
+        if (u === enemyTower) {
+          enemyTower.alive = false; enemyTower.hp = 0;
+          addPopup(u.x, u.y - 30, '+350g TOWER', '#f59e0b');
+          hero.gold += 350;
+        } else if (u.team === 'red' && fromHero) {
+          hero.cs++; hero.gold += 42;
+          addPopup(u.x, u.y - 16, '+42g', '#f59e0b');
+        }
+      }
+    }
+
+    let last = performance.now();
+    function tick(now) {
+      const dt = Math.min(0.04, (now - last) / 1000);
+      last = now;
+
+      // Cooldowns & regen
+      for (const k of ['q', 'w', 'e', 'r']) cds[k] = Math.max(0, cds[k] - dt);
+      hero.aaCd = Math.max(0, hero.aaCd - dt);
+      hero.mp = Math.min(hero.maxMp, hero.mp + 11 * dt);
+      hero.hp = Math.min(hero.maxHp, hero.hp + 5 * dt);
+
+      waveTimer -= dt;
+      if (waveTimer <= 0) { waveTimer = 15; spawnWave(); }
+
+      // Hero movement / auto-attack chase
+      if (hero.target && (hero.target.hp <= 0 || hero.target.alive === false)) hero.target = null;
+      if (hero.target) {
+        const d = Math.hypot(hero.target.x - hero.x, hero.target.y - hero.y);
+        hero.facing = Math.atan2(hero.target.y - hero.y, hero.target.x - hero.x);
+        if (d <= hero.aaRange) {
+          hero.tx = hero.x; hero.ty = hero.y;
+          if (hero.aaCd <= 0) {
+            hero.aaCd = 0.72;
+            projectiles.push({ x: hero.x, y: hero.y, target: hero.target, speed: 700, r: 6, dmg: 52, team: 'blue', fromHero: true, color: '#fef08a', life: 1.5 });
+          }
+        } else {
+          hero.tx = hero.target.x; hero.ty = hero.target.y;
+        }
+      }
+
+      const dx = hero.tx - hero.x, dy = hero.ty - hero.y, dist = Math.hypot(dx, dy);
+      if (dist > 3) {
+        const step = Math.min(dist, hero.speed * dt);
+        hero.x += (dx / dist) * step; hero.y += (dy / dist) * step;
+        hero.facing = Math.atan2(dy, dx);
+      }
+
+      // Minions march along mid lane & fight
+      for (let i = minions.length - 1; i >= 0; i--) {
+        const m = minions[i];
+        if (m.hp <= 0) { minions.splice(i, 1); continue; }
+        m.cd = Math.max(0, m.cd - dt);
+        m.slow = Math.max(0, m.slow - dt);
+        const opp = minions.find(o => o.team !== m.team && o.hp > 0 && Math.hypot(o.x - m.x, o.y - m.y) < 150);
+        const goal = opp || (m.team === 'blue' ? enemyTower : allyTower);
+        const gx = goal.x - m.x, gy = goal.y - m.y, gd = Math.hypot(gx, gy) || 1;
+        if (gd > 55) {
+          const spd = m.slow > 0 ? 45 : 92;
+          m.x += (gx / gd) * spd * dt; m.y += (gy / gd) * spd * dt;
+        } else if (m.cd <= 0 && goal.hp > 0) {
+          m.cd = 1.05;
+          damageUnit(goal, 18, false);
+        }
+      }
+
+      // Enemy Tower aggro (targets minions first, hero if alone in range)
+      if (enemyTower.alive) {
+        enemyTower.cd = Math.max(0, enemyTower.cd - dt);
+        const inRangeMinion = minions.find(m => m.team === 'blue' && Math.hypot(m.x - enemyTower.x, m.y - enemyTower.y) <= enemyTower.range);
+        const target = inRangeMinion || (Math.hypot(hero.x - enemyTower.x, hero.y - enemyTower.y) <= enemyTower.range ? hero : null);
+        if (target && enemyTower.cd <= 0) {
+          enemyTower.cd = 1.15;
+          projectiles.push({ x: enemyTower.x, y: enemyTower.y, target, speed: 560, r: 8, dmg: 65, team: 'red', color: '#f87171', life: 1.5 });
+        }
+      }
+
+      // Projectiles
+      for (let i = projectiles.length - 1; i >= 0; i--) {
+        const p = projectiles[i];
+        p.life -= dt;
+        if (p.life <= 0) { projectiles.splice(i, 1); continue; }
+        if (p.target) {
+          const tx = p.target.x - p.x, ty = p.target.y - p.y, td = Math.hypot(tx, ty) || 1;
+          p.x += (tx / td) * p.speed * dt; p.y += (ty / td) * p.speed * dt;
+          if (td < 18) {
+            if (p.target === hero) hero.hp = Math.max(60, hero.hp - p.dmg);
+            else damageUnit(p.target, p.dmg, Boolean(p.fromHero));
+            projectiles.splice(i, 1);
+          }
+        } else {
+          p.x += p.vx * dt; p.y += p.vy * dt;
+          for (const m of minions) {
+            if (m.team !== p.team && !p.hitSet.has(m) && Math.hypot(m.x - p.x, m.y - p.y) < m.r + p.r) {
+              p.hitSet.add(m);
+              damageUnit(m, p.dmg, true);
+            }
+          }
+        }
+      }
+
+      // Ground AoE telegraphs
+      for (let i = aoes.length - 1; i >= 0; i--) {
+        const a = aoes[i];
+        if (!a.fired) {
+          a.delay -= dt;
+          if (a.delay <= 0) {
+            a.fired = true;
+            for (const m of minions) {
+              if (m.team === 'red' && Math.hypot(m.x - a.x, m.y - a.y) <= a.r + m.r) {
+                damageUnit(m, a.dmg, true);
+                m.slow = a.slow;
+              }
+            }
+            if (enemyTower.alive && Math.hypot(enemyTower.x - a.x, enemyTower.y - a.y) <= a.r + enemyTower.r) {
+              damageUnit(enemyTower, Math.round(a.dmg * 0.5), true);
+            }
+          }
+        } else {
+          a.fade -= dt;
+          if (a.fade <= 0) aoes.splice(i, 1);
+        }
+      }
+
+      for (let i = clicks.length - 1; i >= 0; i--) { clicks[i].life -= dt; if (clicks[i].life <= 0) clicks.splice(i, 1); }
+      for (let i = popups.length - 1; i >= 0; i--) { popups[i].y -= 28 * dt; popups[i].life -= dt; if (popups[i].life <= 0) popups.splice(i, 1); }
+
+      // Subtle camera follow
+      cam.x += (hero.x + 120 - cam.x) * Math.min(1, 3.2 * dt);
+      cam.y += (hero.y - 60 - cam.y) * Math.min(1, 3.2 * dt);
+
+      // Update HUD
+      document.getElementById('cs').textContent = String(hero.cs);
+      document.getElementById('gold').textContent = `${hero.gold}g`;
+      document.getElementById('towerHp').textContent = String(Math.max(0, Math.round(enemyTower.hp)));
+      document.getElementById('hpFill').style.width = `${(hero.hp / hero.maxHp) * 100}%`;
+      document.getElementById('mpFill').style.width = `${(hero.mp / hero.maxMp) * 100}%`;
+      document.getElementById('hpLbl').textContent = `${Math.round(hero.hp)} / ${hero.maxHp}`;
+      document.getElementById('mpLbl').textContent = `${Math.round(hero.mp)} / ${hero.maxMp}`;
+
+      for (const [k, elId, cdId] of [['q', 'abQ', 'cdQ'], ['w', 'abW', 'cdW'], ['e', 'abE', 'cdE'], ['r', 'abR', 'cdR']]) {
+        const cdEl = document.getElementById(cdId);
+        const box = document.getElementById(elId);
+        if (cds[k] > 0) {
+          cdEl.style.display = 'flex';
+          cdEl.textContent = cds[k].toFixed(1);
+          box.classList.remove('ready');
+        } else {
+          cdEl.style.display = 'none';
+          box.classList.toggle('ready', hero.mp >= costs[k]);
+        }
+      }
+
+      render();
+      requestAnimationFrame(tick);
+    }
+
+    function render() {
+      ctx.fillStyle = '#10171b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.save();
+      ctx.translate(Math.round(canvas.width / 2 - cam.x), Math.round(canvas.height / 2 - cam.y));
+
+      // Jungle ground + diagonal carved Mid Lane stone path
+      ctx.fillStyle = '#172320';
+      ctx.fillRect(0, 0, WORLD.w, WORLD.h);
+      ctx.strokeStyle = '#2d3538';
+      ctx.lineWidth = 210;
+      ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(260, 1050); ctx.lineTo(1600, 380); ctx.stroke();
+
+      // River bisecting mid lane
+      ctx.strokeStyle = 'rgba(14, 116, 144, 0.38)';
+      ctx.lineWidth = 96;
+      ctx.beginPath(); ctx.moveTo(520, 220); ctx.lineTo(1320, 1180); ctx.stroke();
+
+      // Towers + aggro rings
+      for (const t of [allyTower, enemyTower]) {
+        if (!t.alive) continue;
+        ctx.strokeStyle = t.team === 'red' ? 'rgba(239, 68, 68, 0.22)' : 'rgba(56, 189, 248, 0.18)';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2); ctx.stroke();
+
+        ctx.fillStyle = t.team === 'red' ? '#991b1b' : '#0369a1';
+        ctx.beginPath(); ctx.arc(t.x, t.y, t.r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 3; ctx.stroke();
+
+        // Tower HP bar
+        ctx.fillStyle = '#0f172a'; ctx.fillRect(t.x - 36, t.y - 48, 72, 8);
+        ctx.fillStyle = t.team === 'red' ? '#ef4444' : '#38bdf8';
+        ctx.fillRect(t.x - 36, t.y - 48, 72 * (t.hp / t.maxHp), 8);
+      }
+
+      // Ground AoE telegraphs
+      for (const a of aoes) {
+        if (!a.fired) {
+          const pct = 1 - a.delay / a.maxDelay;
+          ctx.strokeStyle = a.color; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = `${a.color}33`;
+          ctx.beginPath(); ctx.arc(a.x, a.y, a.r * pct, 0, Math.PI * 2); ctx.fill();
+        } else {
+          ctx.fillStyle = a.color; ctx.globalAlpha = Math.max(0, a.fade * 1.4);
+          ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2); ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      // Move / attack click rings
+      for (const c of clicks) {
+        ctx.strokeStyle = c.color; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(c.x, c.y, (0.45 - c.life) * 58, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      // Attack-Move range ring
+      if (attackMoveMode) {
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.55)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(hero.x, hero.y, hero.aaRange, 0, Math.PI * 2); ctx.stroke();
+      }
+
+      // Minions
+      for (const m of minions) {
+        ctx.fillStyle = m.team === 'blue' ? '#38bdf8' : '#ef4444';
+        ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#0f172a'; ctx.fillRect(m.x - 14, m.y - 22, 28, 4);
+        ctx.fillStyle = m.team === 'blue' ? '#22c55e' : '#f87171';
+        ctx.fillRect(m.x - 14, m.y - 22, 28 * (m.hp / m.maxHp), 4);
+      }
+
+      // Hero
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath(); ctx.arc(hero.x, hero.y, hero.r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fef3c7'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(hero.x - 24, hero.y - 34, 48, 6);
+      ctx.fillStyle = '#22c55e'; ctx.fillRect(hero.x - 24, hero.y - 34, 48 * (hero.hp / hero.maxHp), 6);
+
+      // Projectiles
+      for (const p of projectiles) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Gold/Damage popups
+      ctx.font = '700 14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      for (const pop of popups) {
+        ctx.fillStyle = pop.color;
+        ctx.globalAlpha = Math.max(0, pop.life);
+        ctx.fillText(pop.text, pop.x, pop.y);
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    requestAnimationFrame(tick);
+  </script>
+
+<script>
+  window.__bootErrors = [];
+  window.addEventListener('error', (e) => {
+    window.__bootErrors.push(e.message || 'runtime_error');
+    document.documentElement.setAttribute('data-boot-errors', window.__bootErrors.join('||'));
+  });
+  window.addEventListener('load', () => {
+    document.documentElement.setAttribute('data-boot-errors', window.__bootErrors.join('||'));
+    document.documentElement.setAttribute('data-boot-status', 'READY');
+  });
+</script>
+</body>
+</html>
